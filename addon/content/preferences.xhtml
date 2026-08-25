@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ZotRead preferences pane.
+  Loaded as an XHTML fragment by Zotero's preference-pane loader (XUL is the
+  default namespace; HTML elements are available under html:). Values are
+  wired manually in preferences.js so the pane has no dependency on Zotero's
+  internal preference-binding machinery.
+-->
+<vbox id="zotread-prefs" align="start">
+	<link rel="localization" href="zotread.ftl"/>
+
+	<label>
+		<html:h2 data-l10n-id="zotread-prefs-header">ZotRead</html:h2>
+	</label>
+
+	<checkbox id="zotread-pref-autodetect"
+		data-l10n-id="zotread-prefs-auto-detect"
+		preference="extensions.zotero.zotread.autoDetectRead"/>
+	<checkbox id="zotread-pref-annotationdots"
+		data-l10n-id="zotread-prefs-show-annotations"
+		preference="extensions.zotero.zotread.showAnnotationDots"/>
+
+	<separator/>
+
+	<hbox align="center">
+		<label data-l10n-id="zotread-prefs-color-unread"/>
+		<html:input type="color" id="zotread-pref-color-unread" width="60"/>
+	</hbox>
+	<hbox align="center">
+		<label data-l10n-id="zotread-prefs-color-read"/>
+		<html:input type="color" id="zotread-pref-color-read" width="60"/>
+	</hbox>
+	<hbox align="center">
+		<label data-l10n-id="zotread-prefs-color-annotated"/>
+		<html:input type="color" id="zotread-pref-color-annotated" width="60"/>
+	</hbox>
+
+	<separator/>
+
+	<description data-l10n-id="zotread-prefs-note"></description>
+</vbox>

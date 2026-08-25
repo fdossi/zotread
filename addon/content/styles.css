@@ -1,0 +1,39 @@
+/*
+ * ZotRead indicator styles.
+ *
+ * Structural styles only: sizes and overlap are also set inline by the
+ * column renderer (from preferences-driven constants) so tests can assert
+ * the exact geometry. Colors are applied inline per cell from preferences.
+ *
+ * Geometry contract (asserted in tests/geometry.test.mjs):
+ *   dot diameter ............ 10 px
+ *   center-to-center ........ 8 px  => overlap = 10 - 8 = 2 px = 20%
+ *   combined width .......... 18 px
+ */
+
+.zotread-cell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding-inline-start: 4px;
+}
+
+.zotread-dots {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	/* Fixed combined width for both states prevents layout shift when an
+	   item transitions between one dot and two overlapping dots. */
+	width: 18px;
+	height: 10px;
+	pointer-events: auto;
+}
+
+.zotread-dot {
+	border-radius: 50%;
+	box-sizing: border-box;
+	/* Inset ring keeps both dot fills legible where they overlap, and keeps
+	   the yellow visible against light backgrounds / green against dark
+	   backgrounds. Applied by the renderer inline so it also covers the
+	   single-dot states consistently. */
+}

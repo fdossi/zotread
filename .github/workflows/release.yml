@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Test, build, verify
+        run: |
+          npm test
+          npm run build
+          npm run verify
+
+      - name: Compute version and checksums
+        id: meta
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          XPI="dist/zotread-${VERSION}.xpi"
+          test -f "$XPI" || { echo "Missing $XPI"; exit 1; }
+          SHA256=$(sha256sum "$XPI" | cut -d' ' -f1)
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "xpi=$(basename "$XPI")" >> "$GITHUB_OUTPUT"
+          echo "sha256=${SHA256}" >> "$GITHUB_OUTPUT"
+
+      # Update the hosted update-manifest on the default branch so existing
+      # installs see the new version. The XPI itself is attached to the
+      # GitHub Release created below.
+      - name: Publish updates.json entry on default branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          SHA256: ${{ steps.meta.outputs.sha256 }}
+          XPI_NAME: ${{ steps.meta.outputs.xpi }}
+        run: |
+          DEFAULT_BRANCH=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name)
+          git fetch origin "$DEFAULT_BRANCH"
+          git switch "$DEFAULT_BRANCH"
+
+          node scripts/update-manifest.mjs "$VERSION" "sha256:$SHA256" \
+            "https://github.com/fdossi/zotread/releases/download/v$VERSION/$XPI_NAME"
+
+          if ! git diff --quiet updates.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add updates.json
+            git commit -m "chore(release): add v$VERSION to updates.json [skip ci]"
+            git push origin "$DEFAULT_BRANCH"
+          fi
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          TAG: ${{ github.ref_name }}
+          SHA256: ${{ steps.meta.outputs.sha256 }}
+        run: |
+          gh release create "$TAG" \
+            --title "ZotRead v$VERSION" \
+            --notes "ZotRead $VERSION — reading-status indicators for Zotero 10.
+
+          **Install:** download \`zotread-$VERSION.xpi\`, then in Zotero open Tools → Plugins → gear menu → Install Plugin From File…
+
+          SHA-256: \`$SHA256\`" \
+            dist/*.xpi dist/*.sha256

@@ -1,0 +1,22 @@
+{
+	"name": "zotread",
+	"version": "1.0.0",
+	"description": "Reading-status indicators for Zotero 10: unread (red), read (green), read with annotations (overlapping green + yellow).",
+	"type": "module",
+	"private": true,
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/fdossi/zotread.git"
+	},
+	"engines": {
+		"node": ">=18"
+	},
+	"scripts": {
+		"icons": "node scripts/generate-icons.mjs",
+		"build": "node scripts/build.mjs",
+		"verify": "node scripts/verify-package.mjs",
+		"test": "node --test \"tests/**/*.test.mjs\"",
+		"ci": "npm test && npm run build && npm run verify"
+	}
+}

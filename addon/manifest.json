@@ -1,0 +1,22 @@
+{
+	"manifest_version": 2,
+	"name": "ZotRead",
+	"version": "1.0.0",
+	"description": "Reading-status indicators for Zotero: unread (red), read (green), read with annotations (overlapping green + yellow).",
+	"homepage_url": "https://github.com/fdossi/zotread",
+	"author": "Fábio Dossi",
+	"icons": {
+		"16": "icons/zotread-16.png",
+		"32": "icons/zotread-32.png",
+		"48": "icons/zotread-48.png",
+		"96": "icons/zotread-96.png"
+	},
+	"applications": {
+		"zotero": {
+			"id": "zotread@fdossi.github.io",
+			"update_url": "https://raw.githubusercontent.com/fdossi/zotread/main/updates.json",
+			"strict_min_version": "10.0",
+			"strict_max_version": "10.0.*"
+		}
+	}
+}

@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-build-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Generate icons (idempotent check)
+        run: npm run icons
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build XPI
+        run: npm run build
+
+      - name: Verify package
+        run: npm run verify
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zotread-xpi
+          path: |
+            dist/*.xpi
+            dist/*.sha256
+          if-no-files-found: error

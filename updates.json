@@ -1,0 +1,11 @@
+{
+	"zotread@fdossi.github.io": {
+		"updates": [
+			{
+				"version": "1.0.0",
+				"update_link": "https://github.com/fdossi/zotread/releases/download/v1.0.0/zotread-1.0.0.xpi",
+				"update_hash": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+			}
+		]
+	}
+}
