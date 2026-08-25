@@ -70,6 +70,19 @@ test('annotation creation marks parent read and annotated', () => {
 	assert.equal(State.statusOf(record, true), 'annotated');
 });
 
+test('toggle flips read state and attributes to manual source', () => {
+	let record = State.defaultRecord();
+	record = State.toggleRead(record, NOW);
+	assert.equal(record.read, true, 'unread -> read');
+	assert.equal(record.source, 'manual');
+	assert.equal(record.manuallySetAt, NOW);
+
+	const toggled = State.toggleRead(record, NOW);
+	assert.equal(toggled.read, false, 'read -> unread');
+	assert.equal(toggled.source, 'manual');
+	assert.equal(State.statusOf(toggled, true), 'unread', 'red wins while toggled unread even if annotated');
+});
+
 test('deleting the final annotation removes yellow but preserves read state', () => {
 	let record = State.defaultRecord();
 	record = State.onAnnotationCreated(record, NOW);

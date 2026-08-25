@@ -4,6 +4,29 @@ All notable changes to ZotRead are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [SemVer](https://semver.org/).
 
+## [1.0.1] - 2026-08-26
+
+### Fixed
+
+- Annotation creation now actually marks the parent item read (the state
+  transition existed but was never wired to the notifier); gated by
+  *autoDetectRead* like all automatic detection.
+- The *"Show annotation indicator"* preference now has a visible effect:
+  when off, annotated items render like read (single green dot).
+- Reader-window open detection no longer touches Zotero's private
+  `Zotero.Reader._readers`; it reads the reader instance Zotero attaches to
+  the window (`window.reader`).
+- `updates.json` no longer carries a placeholder checksum: builds are
+  deterministic, so `npm run build` syncs the real SHA-256 into the entry
+  for the current version, and package verification fails on any mismatch.
+
+### Changed
+
+- Indicator dots resized after feedback: diameter **6.5 px** (from 10 px in
+  1.0.0; half of the intermediate 13 px iteration); overlap kept at exactly
+  20 % of a dot's diameter (**1.3 px**, center distance 5.2 px, combined
+  width 11.7 px). Colors, shape, alignment, labels and tooltips unchanged.
+
 ## [1.0.0] - 2026-08-24
 
 ### Added

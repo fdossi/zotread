@@ -29,14 +29,15 @@ export function loadScripts(relPaths, globals = {}) {
 	return context;
 }
 
-/** Load namespace + state + storage + annotations modules. */
+/** Load namespace + state + storage + annotations + notifier modules. */
 export function loadCoreModules(zoteroStub) {
 	return loadScripts(
 		[
 			'content/zotread.js',
 			'content/state.js',
 			'content/storage.js',
-			'content/annotations.js'
+			'content/annotations.js',
+			'content/notifier.js'
 		],
 		{ Zotero: zoteroStub }
 	);

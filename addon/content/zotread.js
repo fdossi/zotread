@@ -93,6 +93,9 @@ var ZotRead = {
 		ZotRead.Notifier.init();
 
 		ZotRead.Column.register();
+		// Place the column first automatically on a fresh install, while
+		// respecting any position the user has already chosen.
+		ZotRead.Column.ensureFirstColumn();
 		ZotRead.Menu.register();
 
 		this._prefObserverIDs = [
@@ -300,6 +303,25 @@ var ZotRead = {
 		return changed;
 	},
 
+	/** Manual "Toggle read/unread" over one or more selected items. */
+	async applyToggleRead(items, now) {
+		now = now || ZotRead.State.now();
+		let changed = [];
+		let entries = [];
+		for (let item of items) {
+			if (!item || !item.isRegularItem || !item.isRegularItem()) continue;
+			let current = this.Storage.getSync(item.libraryID, item.key);
+			let next = ZotRead.State.toggleRead(current, now);
+			if (!ZotRead.State.equals(current, next)) {
+				entries.push({ libraryID: item.libraryID, itemKey: item.key, record: next });
+				changed.push(item.id);
+			}
+		}
+		await this.Storage.putMany(entries);
+		this.refreshRows(changed);
+		return changed;
+	},
+
 	/**
 	 * Recompute aggregate annotation presence for affected parents and
 	 * repaint their rows.
@@ -309,6 +331,51 @@ var ZotRead = {
 		ZotRead.Annotations.invalidate(parentIDs);
 		this.refreshRows(parentIDs);
 		return parentIDs;
+	},
+
+	/**
+	 * Annotation-creation policy (README "Automatic read detection"):
+	 * creating a qualifying reader annotation marks its bibliographic parent
+	 * read. The annotated (yellow) flag itself is recomputed live from
+	 * library data by the notifier's aggregate refresh.
+	 *
+	 * Accepts notified item objects; non-annotations are ignored. Respects
+	 * the autoDetectRead preference: when explicitly disabled, no automatic
+	 * state transition happens (manual actions are unaffected). Returns
+	 * { changed, parents } - stored-state changes and affected parents.
+	 */
+	async applyAnnotationCreated(items, now) {
+		if (this.pref('autoDetectRead') === false) {
+			return { changed: [], parents: [] };
+		}
+		now = now || ZotRead.State.now();
+		let entries = [];
+		let changed = [];
+		let parents = [];
+		for (let item of items) {
+			if (!item || typeof item.isAnnotation !== 'function' || !item.isAnnotation()) continue;
+			try {
+				// annotation -> attachment -> bibliographic parent
+				let parent = item;
+				for (let depth = 0; depth < 3 && parent && !parent.isRegularItem(); depth++) {
+					if (!parent.parentItemID) break;
+					parent = Zotero.Items.get(parent.parentItemID);
+				}
+				if (!parent || !parent.isRegularItem()) continue;
+				parents.push(parent.id);
+				let current = this.Storage.getSync(parent.libraryID, parent.key);
+				let next = ZotRead.State.onAnnotationCreated(current, now);
+				if (!ZotRead.State.equals(current, next)) {
+					entries.push({ libraryID: parent.libraryID, itemKey: parent.key, record: next });
+					changed.push(parent.id);
+				}
+			}
+			catch (e) {
+				Zotero.logError(e);
+			}
+		}
+		await this.Storage.putMany(entries);
+		return { changed, parents };
 	},
 
 	/** Visual-only row refresh; does not re-sort or mutate rows. */

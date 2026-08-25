@@ -32,6 +32,10 @@ ZotRead.Menu = (function () {
 			await deps.applyManualUnread(eligibleItems(context.items));
 		}
 
+		async function onToggleRead(event, context) {
+			await deps.applyToggleRead(eligibleItems(context.items));
+		}
+
 		async function onRefreshAnnotations(event, context) {
 			await deps.refreshAnnotationStatus(context.items || []);
 		}
@@ -60,6 +64,12 @@ ZotRead.Menu = (function () {
 						l10nID: 'zotread-menu-mark-unread',
 						onShowing,
 						onCommand: onMarkUnread
+					},
+					{
+						menuType: 'menuitem',
+						l10nID: 'zotread-menu-toggle-read',
+						onShowing,
+						onCommand: onToggleRead
 					},
 					{
 						menuType: 'menuitem',
@@ -97,6 +107,7 @@ ZotRead.Menu = (function () {
 				unregisterMenu: id => Zotero.MenuManager.unregisterMenu(id),
 				applyManualRead: items => ZotRead.applyManualRead(items),
 				applyManualUnread: items => ZotRead.applyManualUnread(items),
+				applyToggleRead: items => ZotRead.applyToggleRead(items),
 				refreshAnnotationStatus: items => ZotRead.refreshAnnotationStatus(items),
 				logError: e => Zotero.logError(e)
 			});

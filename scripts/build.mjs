@@ -54,3 +54,28 @@ writeFileSync(xpiPath + '.sha256', `${hash}  ${xpiName}\n`);
 
 console.log(`Built ${relative(root, xpiPath)} (${zip.length} bytes, ${entries.length} files)`);
 console.log(`SHA-256: ${hash}`);
+
+// Keep updates.json honest: the build is deterministic (fixed zip
+// timestamps), so the entry for this version can carry the real checksum of
+// the artifact it points to. Release CI re-runs this via
+// scripts/update-manifest.mjs; here we only refresh an EXISTING entry so a
+// local build never ships a stale/placeholder update_hash.
+try {
+	const updatesPath = join(root, 'updates.json');
+	const updates = JSON.parse(readFileSync(updatesPath, 'utf8'));
+	const pluginID = manifest.applications?.zotero?.id;
+	let synced = false;
+	for (const entry of updates[pluginID]?.updates || []) {
+		if (entry.version === version && entry.update_hash !== 'sha256:' + hash) {
+			entry.update_hash = 'sha256:' + hash;
+			synced = true;
+		}
+	}
+	if (synced) {
+		writeFileSync(updatesPath, JSON.stringify(updates, null, '\t') + '\n');
+		console.log(`updates.json: refreshed sha256 for v${version}`);
+	}
+}
+catch (e) {
+	console.warn(`Warning: could not sync updates.json: ${e.message}`);
+}

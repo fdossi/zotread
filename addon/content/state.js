@@ -108,6 +108,21 @@ ZotRead.State = (function () {
 	}
 
 	/**
+	 * Manual "Toggle read/unread".
+	 *
+	 * Flips the current reading state. Used by the right-click context-menu
+	 * action so a single item or selection can be flipped in one step. The
+	 * change is always attributed to manual source.
+	 */
+	function toggleRead(record, now) {
+		let next = normalize(record);
+		next.read = !next.read;
+		next.source = SOURCE_MANUAL;
+		next.manuallySetAt = now;
+		return next;
+	}
+
+	/**
 	 * Highlight/annotation creation: marks parent read + annotated.
 	 */
 	function onAnnotationCreated(record, now) {
@@ -134,6 +149,7 @@ ZotRead.State = (function () {
 		onOpened,
 		markRead,
 		markUnread,
+		toggleRead,
 		onAnnotationCreated,
 		equals,
 

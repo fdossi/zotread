@@ -103,6 +103,22 @@ if (existsSync(shaPath)) {
 	check(expected === recorded, `checksum mismatch: ${recorded} != ${expected}`);
 }
 
+// 7. updates.json entry for this version carries the real artifact hash
+// (never a placeholder): the build is deterministic, so the published
+// update_hash must equal this exact XPI's SHA-256.
+const xpiSha = createHash('sha256').update(readFileSync(xpiPath)).digest('hex');
+const updatesPath2 = join(root, 'updates.json');
+if (existsSync(updatesPath2) && app) {
+	const updates = JSON.parse(readFileSync(updatesPath2, 'utf8'));
+	for (const entry of updates[app.id]?.updates || []) {
+		if (entry.version === manifest.version) {
+			check(entry.update_hash === 'sha256:' + xpiSha,
+				`updates.json update_hash for v${manifest.version} does not match the built XPI `
+				+ `(${entry.update_hash} != sha256:${xpiSha}) - run npm run build to sync`);
+		}
+	}
+}
+
 // Report
 console.log(`Verified ${xpiPath}`);
 console.log(`Entries (${names.length}):`);

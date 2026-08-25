@@ -8,9 +8,11 @@
  *
  * Secondary path (best effort, documented): attachments opened in separate
  * reader windows do not produce tab events. A window watcher notices new
- * 'zotero:reader' windows and resolves their items from Zotero.Reader's
- * in-memory reader list. If resolution fails the open is simply not counted;
- * nothing breaks.
+ * 'zotero:reader' windows and resolves their items from the reader instance
+ * Zotero attaches to the chrome window itself (ReaderWindow sets
+ * `window.reader = this`, xpcom/reader.js) - no private Zotero internals are
+ * touched. If resolution fails the open is simply not counted; nothing
+ * breaks.
  *
  * Important honesty note (also in README): "opened" means exactly that. It
  * does not prove the content was read; no scroll/attention tracking exists.
@@ -57,20 +59,18 @@ ZotRead.Reader = (function () {
 		}
 
 		/**
-		 * Best-effort: resolve items for reader windows. Diffing the readers
-		 * list keeps this cheap; it runs only when a reader window opens.
+		 * Best effort for standalone reader windows. The xul window's load
+		 * handler reads the reader instance Zotero assigned to the window
+		 * (window.reader); retries give the instance time to register itself.
 		 */
-		async function scanReaderWindows() {
+		async function scanReaderWindow(domWindow) {
 			try {
-				for (let reader of Zotero.Reader._readers || []) {
-					if (processedReaders.has(reader)) continue;
-					// ReaderTab instances are covered by tab events; windows are not.
-					let isWindow = reader.constructor && reader.constructor.name === 'ReaderWindow';
-					if (isWindow && reader.itemID) {
-						processedReaders.add(reader);
-						await handleAttachmentOpened(reader.itemID);
-					}
+				let reader = domWindow.reader;
+				if (!reader || !reader.itemID || processedReaders.has(reader)) {
+					return;
 				}
+				processedReaders.add(reader);
+				await handleAttachmentOpened(reader.itemID);
 			}
 			catch (e) {
 				deps.logError(e);
@@ -89,8 +89,8 @@ ZotRead.Reader = (function () {
 								return;
 							}
 							// Give the reader instance a moment to register itself
-							domWindow.setTimeout(scanReaderWindows, 1500);
-							domWindow.setTimeout(scanReaderWindows, 4000);
+							domWindow.setTimeout(() => scanReaderWindow(domWindow), 1500);
+							domWindow.setTimeout(() => scanReaderWindow(domWindow), 4000);
 						}
 						catch (e) {
 							deps.logError(e);
@@ -108,7 +108,7 @@ ZotRead.Reader = (function () {
 			}
 		}
 
-		return { onTabEvent, scanReaderWindows, init, shutdown };
+		return { onTabEvent, scanReaderWindow, init, shutdown };
 	}
 
 	return {

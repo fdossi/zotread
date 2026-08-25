@@ -1,6 +1,6 @@
 {
 	"name": "zotread",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Reading-status indicators for Zotero 10: unread (red), read (green), read with annotations (overlapping green + yellow).",
 	"type": "module",
 	"private": true,

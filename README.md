@@ -56,7 +56,7 @@ New references appear **unread automatically**. Opening an attachment in Zotero'
 | 🟢 one green | Read | 1 |
 | 🟢🟡 green + overlapping yellow | Read with annotations | 2 |
 
-The two-dot state overlaps by exactly **20 % of one dot's diameter**: 10 px dots whose centers are 8 px apart (2 px overlap), for a combined width of 18 px. The green dot comes first, the yellow second, and a subtle inset ring keeps both legible on light *and* dark themes.
+The two-dot state overlaps by exactly **20 % of one dot's diameter**: 6.5 px dots whose centers are 5.2 px apart (1.3 px overlap), for a combined width of 11.7 px. The green dot comes first, the yellow second, and a subtle inset ring keeps both legible on light *and* dark themes.
 
 ## Installation
 
@@ -72,8 +72,8 @@ The two-dot state overlaps by exactly **20 % of one dot's diameter**: 10 px dots
 
 Zotero 10 has no supported row-decoration hook that draws content to the left of the title, so ZotRead registers a dedicated narrow custom column through the official `Zotero.ItemTreeManager.registerColumn()` API.
 
-- After installation, open the column picker (**View → Columns**, or the ☰ button at the top-right of the items list) and enable **Reading status** under *More Columns*.
-- Zotero does not expose an API to place a custom column leftmost automatically — claiming otherwise would be dishonest. Drag the column header to the far-left position once; Zotero persists your layout between sessions.
+- After installation the **Reading status** column appears automatically as the **first (leftmost)** column in the items list. Zotero stores column order per profile in `treePrefs.json` as each column's `ordinal`; on a fresh install ZotRead writes `ordinal: -1` for its data key so it sorts leftmost. You can still drag it anywhere, hide it, or resize it — once you change its position, your choice is saved and ZotRead will never move it again (it only acts when no position has been recorded yet).
+- If you ever hide the column, re-enable it from the column picker (**View → Columns**, or the ☰ button at the top-right of the items list) under *More Columns*.
 - The column supports sorting: ascending order groups unread → read → read+annotated.
 
 ## Automatic read detection
@@ -85,6 +85,7 @@ An item is marked read when **its attachment is opened in Zotero's built-in read
 - Attachments opened in separate reader windows are detected best-effort (see [Limitations](#limitations)).
 - Standalone (parentless) attachments record their own read state internally.
 - Annotation creation (e.g., making a highlight) marks the parent read *and* annotated.
+- Automatic detection (opening *and* annotation creation) is governed by the *"Mark items as read when opened in the reader"* preference; manual actions always work.
 
 What does **not** mark an item read: selecting it, viewing metadata, inspecting attachment details, syncing, or any background access.
 
@@ -148,7 +149,7 @@ Color changes repaint visible rows immediately.
 - **Reader windows:** attachments opened in standalone reader windows (not tabs) are detected best-effort via window watching; if resolution fails, the open simply isn't counted. Reader *tabs* are fully reliable.
 - "Opened ≠ read": see [Automatic read detection](#automatic-read-detection).
 - No cross-device synchronization of status.
-- The column cannot auto-position leftmost (no supported API); drag it once.
+- The column is placed leftmost automatically on a fresh install (via `treePrefs.json` ordinal); once you reposition or hide it, that choice is respected and never overridden.
 - Zotero 10 only — older versions are not targeted.
 - Interactive verification was performed against Zotero 10 documentation and source code; automated coverage uses mocked Zotero APIs (see Testing). Please report runtime issues on the tracker.
 

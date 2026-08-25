@@ -9,6 +9,8 @@ zotread-menu-mark-read =
     .label = Mark as Read
 zotread-menu-mark-unread =
     .label = Mark as Unread
+zotread-menu-toggle-read =
+    .label = Toggle Read/Unread
 zotread-menu-refresh-annotations =
     .label = Refresh Annotation Status
 

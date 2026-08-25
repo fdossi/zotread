@@ -6,6 +6,8 @@
  *
  *  - add/modify of annotations or attachments -> recompute affected parents
  *    (debounced: imports and sync can fire bursts of hundreds of events)
+ *  - add of an annotation additionally marks its bibliographic parent read
+ *    ("Automatic read detection"; gated by autoDetectRead)
  *  - delete/erase of annotations -> same; removing the final qualifying
  *    annotation drops the yellow dot while preserving the read state
  *  - permanent deletion of items -> purge stored state rows
@@ -39,6 +41,20 @@ ZotRead.Notifier = (function () {
 				if (['add', 'modify'].includes(event)) {
 					// Annotation saves, sync merges, attachment changes, etc.
 					let items = Zotero.Items.get(ids.filter(id => Zotero.Items.exists(id)));
+					if (event === 'add') {
+						// Policy: creating an annotation marks its bibliographic
+						// parent read. The dep applies the pref gate and storage
+						// write; affected parents join the debounced repaint.
+						try {
+							let res = await deps.applyAnnotationCreated(items);
+							for (let id of res.parents) {
+								pendingParents.add(id);
+							}
+						}
+						catch (e) {
+							deps.logError(e);
+						}
+					}
 					let parentIDs = deps.resolveParentIDs(items);
 					deps.invalidate(parentIDs);
 					for (let id of parentIDs) {
@@ -117,6 +133,7 @@ ZotRead.Notifier = (function () {
 				setTimeout: (fn, ms) => setTimeout(fn, ms),
 				clearTimeout: t => clearTimeout(t),
 				resolveParentIDs: items => ZotRead.Annotations.resolveParentIDs(items),
+				applyAnnotationCreated: items => ZotRead.applyAnnotationCreated(items),
 				invalidate: ids => ZotRead.Annotations.invalidate(ids),
 				invalidateAll: () => ZotRead.Annotations.invalidateAll(),
 				refreshRows: ids => ZotRead.refreshRows(ids),
